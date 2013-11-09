@@ -30,29 +30,11 @@ class line:
   def draw(self,img):
     cv2.line(img,(self.point1.x,self.point1.y),(self.point2.x,self.point2.y),Point.color,Point.thinkness)
 
-'''
-class Box:
-  #Provide the smaller of the two radii and both centroids
-  def __init__(self,center1, center2,radius):
-    slope = Util.slope(center1,center2)
-    perpSlope = Util.perpSlope(center1,center2)
-'''
 def slope(circle1, circle2):
   return (circle2[1]-circle1[1]) / (circle2[0] - circle1[0])
 
 def perpSlope(circle1, circle2):
   return -(circle2[0]-circle1[0]) / (circle2[1] - circle1[1])
-
-class Util:
-
-    def slope(point1, point2):
-      return (point2.y-point1.y) / (point2.x-point1.x)
-
-    def perpSlope(point1, point2):
-      return -(point2.x - point2.y) / (point2.y-point1.y)
-
-def intersect(centroidX,centroidY,radius):
-  return None
 
 
 
@@ -85,7 +67,7 @@ def findBox(circle1, circle2,img):
   #centroidLine.draw(img)
 
 
-def drawLine(line, img):
+#def drawLine(line, img):
   x1 = line.point1
   x2 = x1.x
   print "points", line.point2.x, line.point1.x
