@@ -1,3 +1,7 @@
+'''
+Working Web-Cam in Python
+'''
+
 import cv2
 
 cv2.namedWindow("preview")
