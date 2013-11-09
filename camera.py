@@ -14,7 +14,10 @@ def process(img):
 	circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
 	if circles is not None:
 		for c in circles[0]:
+			#Draw Circle
 			cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),2)
+			#Draw enter
+			cv2.circle(img, (c[0],c[1]), 1, (100,100 ,255),2)
 	gray = np.float32(gray)
 	dst = cv2.cornerHarris(gray,4,3,0.04)
 
