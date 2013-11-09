@@ -14,15 +14,9 @@ print x/4
 
 #ARROW DETECTION
 def bitmask(img,mask):
-    histr=cv2.calcHist([img],[2],mask,[x/4],[0,512])
-    plt.plot(histr,'r')
-    plt.xlim([0,x/4])
-
-    plt.show()
+   return 0
 
 #CIRCLE DETECTION
-cv2.line(img, (1000,10),(10,600), (0,0,255),15)
-cv2.line(img, (500,10),(500,600), (0,0,255),30)
 
 gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
@@ -56,7 +50,7 @@ if circles is not None:
                     cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),-1)
 
 cv2.imshow('dst',img)
-
+cv2.waitKey(0)
 
 
 
