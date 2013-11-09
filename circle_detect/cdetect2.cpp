@@ -33,13 +33,17 @@ int main(int, char** argv)
 
     vector<Vec3f> circles;
 
-    //Canny(src_gray, src_gray,75,75*3,3);
+    //Canny
+    //Canny(src_gray, src_gray,60,60*3,3);
 
    /// Apply the Hough Transform to find the circles
 
     //HoughCircles(src_gray,circles,CV_HOUGH_GRADIENT,1,80);
     //HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, src_gray.rows/8, 200, 100, 0, 0 );
-    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, 40, 10, 40, 5, 100 );
+    
+    //Detect Circles
+
+    HoughCircles( src_gray, circles, CV_HOUGH_GRADIENT, 1, 40, 10, 45, 5, 100 );
 
     std::cout << "Detections: " << circles.size();
    /// Draw the circles detected
@@ -52,6 +56,17 @@ int main(int, char** argv)
          // circle outline
          circle( src, center, radius, Scalar(0,0,255), 3, 8, 0 );
     }
+
+    Canny(src_gray, src_gray,60,60*3,3);
+    vector<Vec4i> lines;
+    HoughLinesP( src_gray, lines, 1, CV_PI/180, 80, 30, 10 );
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        line( src, Point(lines[i][0], lines[i][1]),
+            Point(lines[i][2], lines[i][3]), Scalar(0,0,255), 3, 8 );
+    }
+
+    //Canny(src,src,60,60*3,3);
 
    /// Show your results
     namedWindow( "Hough Circle Transform Demo", WINDOW_AUTOSIZE );
