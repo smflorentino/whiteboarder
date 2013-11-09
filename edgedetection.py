@@ -56,7 +56,3 @@ if circles is not None:
                     cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),-1)
 
 cv2.imshow('dst',img)
-
-
-
-
