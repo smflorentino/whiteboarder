@@ -4,8 +4,8 @@
  * @author OpenCV team
  */
 
-#include "/Users/scottflo/Downloads/opencv-2.4.6.1/modules/highgui/include/opencv2/highgui/highgui.hpp"
-#include "/Users/scottflo/Downloads/opencv-2.4.6.1/modules/imgproc/include/opencv2/imgproc/imgproc.hpp"
+#include "/Users/matthew/Downloads/opencv/modules/highgui/include/opencv2/highgui/highgui.hpp"
+#include "/Users/matthew/Downloads/opencv/modules/imgproc/include/opencv2/imgproc/imgproc.hpp"
 #include <iostream>
 #include <stdio.h>
 
