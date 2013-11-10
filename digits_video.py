@@ -155,6 +155,8 @@ def main():
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 process(vc,frame)
                 cv2.waitKey(1)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
 
 
