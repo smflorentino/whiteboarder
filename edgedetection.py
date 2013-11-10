@@ -332,9 +332,9 @@ def findNumbers():
 
             sample = preprocess_hog([bin_norm])
             digit = model.predict(sample)[0]
-            if(validateNumber(digit,x,y)):
-              cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255))
-              cv2.putText(frame, '%d'%digit, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255), thickness = 2)
+            #if(validateNumber(digit,x,y)):
+            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255))
+            cv2.putText(frame, '%d'%digit, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255), thickness = 2)
         stop=False
 
 
