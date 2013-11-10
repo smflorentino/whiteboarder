@@ -3,6 +3,9 @@ import numpy as np
 import math
 from matplotlib import pyplot as plt
 
+#Global Variables
+corners = []
+
 
 #Utility Functions
 def slope(circle1, circle2):
@@ -101,6 +104,8 @@ class Box:
     self.side4 = regLine(point3,point4)
     self.side5 = regLine(self.pointm1,self.pointm2)
 
+
+
   def drawDots(self,img):
     self.point1.draw(img)
     self.point2.draw(img)
@@ -116,6 +121,26 @@ class Box:
     self.side4.draw(img)
     self.side5.draw(img)
 
+  #Determine which direction the arrow points inside the box
+  def findDirection(self):
+    #Divide the bound into two halves.
+    rect1 = cv2.minAreaRect(getPointList(self.point1,self.point3,self.pointm1,self.pointm2))
+    rect2 = cv2.minAreaRect(getPointList(self.point2,self.point4,self.pointm1,self.pointm2))
+    r1Count = 0
+    r2Count = 0
+    #Check the count of each "corner" in each half.
+    for corner in corners:
+      (x,y) = i.ravel()
+      if(cv2.pointPolygonTest(rect1,(x,y),False)==1.0):
+        r1Count += 1
+      if(cv2.pointPolygonTest(rect2,(x,y),False)==1.0):
+        r2Count += 1
+    if(r1Count > r2Count):
+      return True
+    if(r2Count > r1Count):
+      return False
+
+#Get the Bounding box for two circles. The arrow will be inside.
 def findBox(circle1, circle2,img):
   #Get minimum radius of both circles
 
@@ -150,9 +175,11 @@ def findBox(circle1, circle2,img):
   #perpLine1b.drawEnds(img)
 
 
-
 def getPointList((x1,y1),(x2,y2),(x3,y3),(x4,y4)):
   return np.array([[x1,y1],[x2,y2],[x3,y3],[x4,y4]])
+
+def getPointList(point1,point2,point3,point4):
+  return np.array([[point1.x,point1.y],[point2.x,point2.y],[point3.x,point3.y],[point4.x,point4.y]])
 
 
 #ARROW DETECTION
@@ -207,14 +234,15 @@ def getCircles():
 
   circleList = []
 
-  
+  corners = getCornerList(img)
   for c in circles[0]:
     for d in circles[0]:  
         if(d[1]==c[1]):
             break
         cir = Circle(c[0],c[1],c[2])
         cir2 = Circle(d[0],d[1],d[2])
-        findBox(cir,cir2,img)
+        b = findBox(cir,cir2,img)
+        b.findDirection()
         circleList.append(cir)
         break
         cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
