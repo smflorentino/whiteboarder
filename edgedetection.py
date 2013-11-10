@@ -140,7 +140,7 @@ class Box:
     self.side5.draw(frame)
 
   #Determine which direction the arrow points inside the box
-  def findDirection(self):
+  def findDirection(self,circle1,circle2):
     #Divide the bound into two halves.
     rect1 = cv2.minAreaRect(getPointList(self.point1,self.point3,self.pointm1,self.pointm2))
     rect2 = cv2.minAreaRect(getPointList(self.point2,self.point4,self.pointm1,self.pointm2))
@@ -154,15 +154,21 @@ class Box:
         r1Count +=1
       elif(checkBounds(x,y,self.point2,self.point4,self.pointm1,self.pointm2)):
         r2Count +=1
-
-      #if(cv2.pointPolygonTest(rect1,(x,y),False)== 1):
-      #  r1Count += 1
-      #if(cv2.pointPolygonTest(rect2,(x,y),False) == 1):
-      #  r2Count += 1
+    global circles
+    for circle in circles:
+      x=circle[0];
+      y=circle[1];
+         #x,y,z = circle.ravel()
+         #if(cv2.pointPolygonTest(rect1,(circle[0],circle[1]),False)==1.0|cv2.pointPolygonTest(rect1,(circle[0],circle[1]),False)==1.0):
+      if (checkBounds(x,y,self.point1,self.point3,self.point2,self.point4)):
+            r1Count=0
+            r2Count=0
+            
     if(r1Count > r2Count):
-      return True
+      cv2.circle(frame, (circle1[0],circle1[1]), circle1[2], (200,255,100),3)
+      output.index(circle1)[2].append(circle2)
     if(r2Count > r1Count):
-      return False
+      output.index(circle2)[2].append(circle1)
 
 def checkBounds(x,y,point1,point2,point3,point4):
   if(x < min(point1.x,point2.x,point3.x,point4,x)):
@@ -184,8 +190,11 @@ def findBox(circle1, circle2,img):
   radius2 = circle2.r
   radius =  min(radius1,radius2) + 10
   m = perpSlope(circle1,circle2)
+  if(math.isinf(m)):
+    return None
 
   c1ctr = Point(circle1.x,circle1.y)
+  print c1ctr.x,c1ctr.y,m,radius
   c1ctr.draw(frame)
   perpLine1a = line(c1ctr.x,c1ctr.y, m,radius)
   perpLine1a.drawEnds(frame)
@@ -361,33 +370,40 @@ def process():
   #print gray
   #gray = cv2.cvtColor(gray,cv2.COLOR_BGR2GRAY)
   global circleList
+  global circles
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
   if circles is None:
     return
 
   #CORNER DETECTION
   corners = getCornerList()
+  
+  circles=circles[0]
+  print "circles", circles
+  global output
+  output=[circles[i] for i in range(0,circles.shape[0])] 
 
-  for i in range(0, len(circles[0])):
-    for j in range(i, len(circles[0])):
+  print "output",output          
+  #CORNER DETECTION
+  corners = getCornerList()
 
-        c = circles[0,i]
-        d = circles[0,j]
 
-        if(d[1]==c[1]):
-            continue
-        cir = Circle(c[0],c[1],c[2])
-        cir2 = Circle(d[0],d[1],d[2])
-        circleList.append(cir)
-        b = findBox(cir,cir2,gray)
-        b.findDirection()
-        #Draw Circle
-        cv2.circle(frame, (c[0],c[1]), c[2], (100,255,100),1)
-        #Draw enter
-        cv2.circle(frame, (c[0],c[1]), 1, (100,100 ,255),1)
-        #break
-        cv2.line(frame, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+  for i in range(0,circles.shape[0]):
+      for j in range(i,circles.shape[0]):
+        if(i!=j):
+          cir = Circle(circles[i,0],circles[i,1],circles[i,2])
+          cir2 = Circle(circles[j,0],circles[j,1],circles[j,2])
+          b = findBox(cir,cir2,img)
+          if(b is not None):
+            b.findDirection(cir,cir2)
+          #Draw Circle
+          cv2.circle(img, (circles[i,0],circles[i,1]), circles[i,2], (100,255,100),1)
+          #Draw center
+          cv2.circle(img, (circles[i,0],circles[i,1]), 1, (100,100 ,255),1)
+          #break
+          cv2.line(img, (circles[i,0],circles[i,1]),(circles[j,0],circles[j,1]), (200,200,50))
         
+
 
   findNumbers()
   cv2.imshow("Image Feed",gray)
@@ -420,7 +436,6 @@ def main():
   global frame
   global img
   global gray
-  global circleList
   rval, frame = vc.read()
   first = True
   while True:
@@ -434,12 +449,11 @@ def main():
       process()
       #first = False
       for circle in circleList:
-        print "Circle:", circle.x, circle.y
+        #print "Circle:", circle.x, circle.y, circle.datum
         circle.drawDetails()
         cv2.namedWindow("Image Feed")
         cv2.imshow("Image Feed", frame)
         cv2.imshow("Raw", gray)
-        circleList = []
     #if frame is None:
       #print "empty"
 
