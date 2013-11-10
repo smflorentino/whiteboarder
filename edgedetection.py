@@ -195,7 +195,7 @@ def getCircles():
   #print "List", len(circles[0])
   #first=True
 
-
+  circles=circles[0]
 #EDGE DETECTION
     
   gray = np.float32(gray)
@@ -206,29 +206,28 @@ def getCircles():
   img[dst>0.01*dst.max()]=[0,0,255]
 
   circleList = []
-
   
-  for c in circles[0]:
-    for d in circles[0]:  
-        if(d[1]==c[1]):
-            break
-        cir = Circle(c[0],c[1],c[2])
-        cir2 = Circle(d[0],d[1],d[2])
-        findBox(cir,cir2,img)
-        circleList.append(cir)
-        break
-        cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
-        r=30
-        theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
-        test=np.array([0,r]);
-        points =getPointList(((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
-        
-        rect = cv2.minAreaRect(points)
-        box = cv2.cv.BoxPoints(rect)
-        box = np.int0(box)
-        rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
+  
+  for i in range (0,circles.shape[0]):
+    for j in range(0,circles.shape[0]):  
+        if(i!=j):
+          cir = Circle(circles[i],c[1],c[2])
+          cir2 = Circle(d[0],d[1],d[2])
+          findBox(cir,cir2,img)
+          circleList.append(cir)
+          break
+          cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+          r=30
+          theta=math.atan(-(circles[i,0]-circles[i,0])/(circles[i,1]-circles[i,1]))
+          test=np.array([0,r]);
+          points =getPointList(((circles[i,0]+r*math.cos(theta)).astype(int),(circles[i,1]+r*math.sin(theta)).astype(int)),((circles[i,0]-r*math.cos(theta)).astype(int),(circles[i,1]-r*math.sin(theta)).astype(int)),((circles[i,0]+r*math.cos(theta)).astype(int),(circles[i,1]+r*math.sin(theta)).astype(int)),((circles[i,0]-r*math.cos(theta)).astype(int),(circles[i,1]-r*math.sin(theta)).astype(int)))
+          
+          rect = cv2.minAreaRect(points)
+          box = cv2.cv.BoxPoints(rect)
+          box = np.int0(box)
+          #rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
 
-        dotcount(points,dst,box)          
+          dotcount(points,dst,box)          
 
        # cv2.line(img, rect[0],rect[1], (0,200,250))
         #cv2.line(img,rect[2], rect[3], (0,100,250),2)
