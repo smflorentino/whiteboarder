@@ -230,7 +230,7 @@ def process(vc,img):
   if circles is None:
     return
 
-  #EDGE DETECTION
+  #CORNER DETECTION
   corners = getCornerList(img)
 
 
@@ -249,29 +249,19 @@ def process(vc,img):
         #break
         cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
         cv2.imshow("Image Feed",img)
-        break
-        r=30
-        theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
-        test=np.array([0,r]);
-        points =getPointList(((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
+        #break
+        #r=30
+        #theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
+        #test=np.array([0,r]);
+        #points =getPointList(((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
         
-        rect = cv2.minAreaRect(points)
-        box = cv2.cv.BoxPoints(rect)
-        box = np.int0(box)
-        rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
+        #rect = cv2.minAreaRect(points)
+        #box = cv2.cv.BoxPoints(rect)
+        #box = np.int0(box)
+        #rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
 
-        dotcount(points,dst,box)         
-        break
-        #cv2.line(img, rect[0],rect[1], (0,200,250))
-        #cv2.line(img,rect[2], rect[3], (0,100,250),2)
-       # cv2.line(img,rect[4], rect[5], (0,100,250),2)
-       # if first:
-         # print "shit is about to have happened, man"
-          
-       # cv2.drawContours(img,[box],0,(0,0,255),2)
-
-          #bitmask(img,theta,rect)
-          #first=False
+        #dotcount(points,dst,box)         
+        #break
 
 #IMAGE IMPORT
 #filename = "C:\\Users\Matthew\My Documents\GitHub\whiteboarder\circlesarrowsnumbers.jpg"
