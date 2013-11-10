@@ -368,22 +368,25 @@ def process():
   #CORNER DETECTION
   corners = getCornerList()
 
+  for i in range(0, len(circles[0])):
+    for j in range(i, len(circles[0])):
 
-  for c in circles[0]:
-    for d in circles[0]:  
+        c = circles[0,i]
+        d = circles[0,j]
+
         if(d[1]==c[1]):
-            break
+            continue
         cir = Circle(c[0],c[1],c[2])
         cir2 = Circle(d[0],d[1],d[2])
         circleList.append(cir)
         b = findBox(cir,cir2,gray)
         b.findDirection()
         #Draw Circle
-        cv2.circle(gray, (c[0],c[1]), c[2], (100,255,100),1)
+        cv2.circle(frame, (c[0],c[1]), c[2], (100,255,100),1)
         #Draw enter
-        cv2.circle(gray, (c[0],c[1]), 1, (100,100 ,255),1)
+        cv2.circle(frame, (c[0],c[1]), 1, (100,100 ,255),1)
         #break
-        cv2.line(gray, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+        cv2.line(frame, (c[0],c[1]),(d[0],d[1]), (200,200,50))
         
 
   findNumbers()
@@ -417,6 +420,7 @@ def main():
   global frame
   global img
   global gray
+  global circleList
   rval, frame = vc.read()
   first = True
   while True:
@@ -430,11 +434,12 @@ def main():
       process()
       #first = False
       for circle in circleList:
-        #print "Circle:", circle.x, circle.y, circle.datum
+        print "Circle:", circle.x, circle.y
         circle.drawDetails()
         cv2.namedWindow("Image Feed")
         cv2.imshow("Image Feed", frame)
         cv2.imshow("Raw", gray)
+        circleList = []
     #if frame is None:
       #print "empty"
 
