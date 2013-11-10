@@ -66,46 +66,35 @@ def getPointList((x1,y1),(x2,y2),(x3,y3),(x4,y4)):
 
 
 #ARROW DETECTION
-def bitmask(img,theta,points):
-  print points
- # print points.dtype
-  ball = img[280:340, 330:390]
-  bound=cv2.boundingRect(ball)
-  M=cv2.getRotationMatrix2D(bound,theta,1)
-  Rotated= cv2.warpAffine(img,M,((bound[0]+bound[3])/2),((bound[1]+bound[2])/2))
-  print "shit happened, man"
-  cv2.imshow('rotated',Rotated)
-  return None
+def dotcount(points,dst,box):
+  #print points
+  xmin=min(min(points[0,0],points[1,0]),min(points[2,0],points[3,0]))
+  xmax=max(max(points[0,0],points[1,0]),max(points[2,0],points[3,0]))
+  ymin=min(min(points[0,1],points[1,1]),min(points[2,1],points[3,1]))
+  ymax=max(max(points[0,1],points[1,1]),max(points[2,1],points[3,1]))
+  count=0
+  h,w,d=img.shape
+  dm=dst.max()
+  print xmin,xmax,ymin,ymax
+  for x in range(xmin,xmax):
+    #print "x",x, "xmax", xmax,"ymax",ymax
+    #print box
+    for y in range(ymin,ymax):
+     # print y,x,dst[y,x],cv2.pointPolygonTest(points,(y,x),False)
+      if (dst[y,x]>.01*dm)& (cv2.pointPolygonTest(box,(y,x),False)==1.0):
+            count+=1
+            
+  print "count",count
+
+
 
 #CIRCLE DETECTION
 def getCircles():
   gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
-  print "List", len(circles[0])
-  first=True
-  for c in circles[0]:
-    for d in circles[0]:  
-        if(d[1]==c[1]):
-            break
-        cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
-        r=min(c[2],d[2])//1
-        theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
-        test=np.array([0,r]);
-        points =getPointList(((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
-        
-        rect = cv2.minAreaRect(points)
-        box = cv2.cv.BoxPoints(rect)
-        box = np.int0(box)
-        cv2.drawContours(img,[box],0,(0,0,255),2)
+  #print "List", len(circles[0])
+  #first=True
 
-        rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
-       # cv2.line(img, rect[0],rect[1], (0,200,250))
-        cv2.line(img,rect[2], rect[3], (0,100,250),2)
-        cv2.line(img,rect[4], rect[5], (0,100,250),2)
-        if first:
-          print "shit is about to have happened, man"
-          bitmask(img,theta,rect)
-          first=False
 
 #EDGE DETECTION
     
@@ -116,24 +105,57 @@ def getCircles():
 # Threshold for an optimal value, it may vary depending on the image.
   img[dst>0.01*dst.max()]=[0,0,255]
 
+
+  
+  for c in circles[0]:
+    for d in circles[0]:  
+        if(d[1]==c[1]):
+            break
+        cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+        r=30
+        theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
+        test=np.array([0,r]);
+        points =getPointList(((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
+        
+        rect = cv2.minAreaRect(points)
+        box = cv2.cv.BoxPoints(rect)
+        box = np.int0(box)
+        rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
+
+        dotcount(points,dst,box)          
+
+       # cv2.line(img, rect[0],rect[1], (0,200,250))
+        #cv2.line(img,rect[2], rect[3], (0,100,250),2)
+       # cv2.line(img,rect[4], rect[5], (0,100,250),2)
+       # if first:
+         # print "shit is about to have happened, man"
+          
+       # cv2.drawContours(img,[box],0,(0,0,255),2)
+
+          #bitmask(img,theta,rect)
+          #first=False
+
+
+
+
 #PAINTING
   if circles is not None:
             for c in circles[0]:
                     cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),-1)
 
   cv2.imshow('dst',img)
+
   if cv2.waitKey(0) & 0xff == 27:
     cv2.destroyAllWindows()
+
 
 #IMAGE IMPORT
 #filename = "C:\\Users\Matthew\My Documents\GitHub\whiteboarder\circlesarrowsnumbers.jpg"
 filename = "circlesarrowsnumbers.jpg"
 img = cv2.imread(filename)
 y,x,d=img.shape
-print x
-
 img=cv2.resize(img,(x/4,y/4))
-print x/4
+print x/4, y/4
 getCircles()
 
 
