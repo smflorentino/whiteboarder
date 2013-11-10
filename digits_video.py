@@ -9,7 +9,7 @@ from common import mosaic
 
 from digits import *
 
-def process(vc,frame):
+def findNumbers(vc,frame):
     print "starting...."
     blank = True
     while blank:
@@ -84,56 +84,6 @@ def process(vc,frame):
         if ch == 27:
             break
 
-def process2(img):
-    gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
-    if circles is not None:
-        for c in circles[0]:
-            #Draw Circle
-            cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),2)
-            #Draw enter
-            cv2.circle(img, (c[0],c[1]), 1, (100,100 ,255),2)
-    gray = np.float32(gray)
-    dst = cv2.cornerHarris(gray,4,3,0.04)
-
-    #result is dilated for marking the corners, not important
-    dst = cv2.dilate(dst,None)
-
-    # Threshold for an optimal value, it may vary depending on the image.
-    img[dst>0.01*dst.max()]=[0,0,255]
-    #findarrows(circles,img)
-    cv2.imshow("Image Feed",img)
-
-s = ""
-
-import thread
-import time
-
-# Define a function for the thread
-def display_preview(threadName, delay,vc):
-   while True:
-      time.sleep(delay)
-      rval,frame = vc.read()
-      cv2.imshow("Image Feed",frame)
-      print "%s: %s" % ( threadName, time.ctime(time.time()) )
-
-def main2():
-    cv2.namedWindow("Image Feed")
-    vc = cv2.VideoCapture(0)
-    rval, frame = vc.read()
-    Wait = True
-    try:
-        thread.start_new_thread( display_preview, ("Thread-1", 0,vc) )
-    except:
-        print "Error: unable to start thread"
-    while Wait:
-        s = raw_input()
-        cv2.namedWindow("Image Feed")
-        vc = cv2.VideoCapture(0)
-        rval, frame = vc.read()
-        cv2.imshow("Current Image,frame")
-        Wait = False
-
 def main():
         cv2.namedWindow("Image Feed")
         vc = cv2.VideoCapture(0)
@@ -147,13 +97,13 @@ def main():
                 #cv2.imshow("preview", frame)
                 #Process it instead
                 #cv2.imshow("Current Image",frame)
-                process(vc,frame)
+                findNumbers(vc,frame)
             if frame is None:
                 empty = empty + 1
                 print "Empty", empty
             rval, frame = vc.read()
             if cv2.waitKey(1) & 0xFF == ord('q'):
-                process(vc,frame)
+                findNumbers(vc,frame)
                 cv2.waitKey(1)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
