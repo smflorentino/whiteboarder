@@ -9,6 +9,7 @@ from digits import *
 from matplotlib import pyplot as plt
 
 #Global Variables
+output= []
 corners = []
 frame = None
 img = None
@@ -128,7 +129,7 @@ class Box:
     self.side5.draw(img)
 
   #Determine which direction the arrow points inside the box
-  def findDirection(self):
+  def findDirection(self,circle1,circle2):
     #Divide the bound into two halves.
     rect1 = cv2.minAreaRect(getPointList(self.point1,self.point3,self.pointm1,self.pointm2))
     rect2 = cv2.minAreaRect(getPointList(self.point2,self.point4,self.pointm1,self.pointm2))
@@ -136,15 +137,20 @@ class Box:
     r2Count = 0
     #Check the count of each "corner" in each half.
     for corner in corners:
-      (x,y) = i.ravel()
-      if(cv2.pointPolygonTest(rect1,(x,y),False)==1.0):
+      if(cv2.pointPolygonTest(rect1,corner[0:1],False)==1.0):
         r1Count += 1
-      if(cv2.pointPolygonTest(rect2,(x,y),False)==1.0):
+      if(cv2.pointPolygonTest(rect2,corner[0:1],False)==1.0):
         r2Count += 1
+    for circle in circles:
+         (x,y) = i.ravel()
+         if(cv2.pointPolygonTest(rect1,circle[0:1],False)==1.0|cv2.pointPolygonTest(rect1,(x,y),False)==1.0):
+            r1Count=0
+            r2Count=0
+            
     if(r1Count > r2Count):
-      return True
+      output.index(circle1)[2].append(circle2)
     if(r2Count > r1Count):
-      return False
+      output.index(circle2)[2].append(circle1)
 
 #Get the Bounding box for two circles. The arrow will be inside.
 def findBox(circle1, circle2,img):
@@ -189,30 +195,20 @@ def getPointList(point1,point2,point3,point4):
 
 
 #ARROW DETECTION
-def dotcount(points,dst,box):
+def findarrow(box):
   return
-  #print points
-  xmin=min(min(points[0,0],points[1,0]),min(points[2,0],points[3,0]))
-  xmax=max(max(points[0,0],points[1,0]),max(points[2,0],points[3,0]))
-  ymin=min(min(points[0,1],points[1,1]),min(points[2,1],points[3,1]))
-  ymax=max(max(points[0,1],points[1,1]),max(points[2,1],points[3,1]))
-  count=0
-  h,w,d=img.shape
-  dm=dst.max()
-  print xmin,xmax,ymin,ymax
-  for x in range(xmin,xmax):
-    #print "x",x, "xmax", xmax,"ymax",ymax
-    #print box
-    for y in range(ymin,ymax):
+
+
      # print y,x,dst[y,x],cv2.pointPolygonTest(points,(y,x),False)
-      if (dst[y,x]>.01*dm)& (cv2.pointPolygonTest(box,(y,x),False)==1.0):
-            count+=1
+    #if cv2.pointPolygonTest(box,(y,x),False)==1.0:
+         #   count+=1
             
-  print "count",count
+ # print "count",count
 
 
 #CORNER DETECTION
 def getCornerList():
+  global corners
   gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 
   corners = cv2.goodFeaturesToTrack(gray,50,0.05,0)
@@ -314,25 +310,30 @@ def process():
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
   if circles is None:
     return
+  circles=circles[0]
+  print "circles", circles
+  global output
+  output=[circles[i] for i in range(0,circles.shape[0])] 
 
+  print "output",output          
   #CORNER DETECTION
   corners = getCornerList()
 
 
-  for c in circles[0]:
-    for d in circles[0]:  
-        if(d[1]==c[1]):
+  for i in range(0,circles.shape[0]):
+      for j in range(i,circles.shape[0]):
+        if(i!=j):
             break
-        cir = Circle(c[0],c[1],c[2])
-        cir2 = Circle(d[0],d[1],d[2])
+        cir = Circle(circles[i,0],circles[i,1],circles[i,2])
+        cir2 = Circle(circles[j,0],circles[j,1],circles[j,2])
         b = findBox(cir,cir2,img)
-        b.findDirection()
+        b.findDirection(cir,cir2)
         #Draw Circle
-        cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),1)
-        #Draw enter
-        cv2.circle(img, (c[0],c[1]), 1, (100,100 ,255),1)
+        cv2.circle(img, (circles[i,0],circles[i,1]), circles[i,2], (100,255,100),1)
+        #Draw center
+        cv2.circle(img, (circles[i,0],circles[i,1]), 1, (100,100 ,255),1)
         #break
-        cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+        cv2.line(img, (circles[i,0],circles[i,1]),(circles[j,0],circles[j,1]), (200,200,50))
         
 
   findNumbers()
