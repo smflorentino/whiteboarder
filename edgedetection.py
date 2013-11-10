@@ -12,7 +12,8 @@ from matplotlib import pyplot as plt
 corners = []
 frame = None
 img = None
-
+gray = None
+circleList = []
 #Utility Functions
 def slope(circle1, circle2):
   return (circle2[1]-circle1[1]) / (circle2[0] - circle1[0])
@@ -33,8 +34,8 @@ class Point:
     self.y = int(y)
 
   def draw(self, img):
-    print "xy",self.x,self.y
-    cv2.circle(img,(self.x,self.y),4,255,-1)
+    #print "xy",self.x,self.y
+    cv2.circle(frame,(self.x,self.y),4,255,-1)
 
 #A line with two points.
 class line:
@@ -56,11 +57,11 @@ class line:
     self.point2 = point2
 
   def draw(self,img):
-    cv2.line(img,(self.point1.x,self.point1.y),(self.point2.x,self.point2.y),Point.color,Point.thinkness)
+    cv2.line(frame,(self.point1.x,self.point1.y),(self.point2.x,self.point2.y),Point.color,Point.thinkness)
 
   def drawEnds(self,img):
-    self.point1.draw(img)
-    self.point2.draw(img)
+    self.point1.draw(frame)
+    self.point2.draw(frame)
 
     #A line with two points.
 class regLine:
@@ -79,11 +80,11 @@ class regLine:
     self.point2 = point2
 
   def draw(self,img):
-    cv2.line(img,(self.point1.x,self.point1.y),(self.point2.x,self.point2.y),regLine.color,regLine.thinkness)
+    cv2.line(frame,(self.point1.x,self.point1.y),(self.point2.x,self.point2.y),regLine.color,regLine.thinkness)
 
   def drawEnds(self,img):
-    self.point1.draw(img)
-    self.point2.draw(img)
+    self.point1.draw(frame)
+    self.point2.draw(frame)
 
 
 
@@ -94,7 +95,18 @@ class Circle:
     self.r=r
 
   def contains(self,x,y):
-    return ( (x-self.x)^2 + (y-self.y)^2 ) < (self.r)^2
+    return (math.pow(x-self.x,2) + math.pow(y-self.y,2) ) < math.pow(self.r,2)
+
+  def setDatum(self,datum):
+    self.datum = datum
+
+  def setNext(self, next):
+    self.next = next
+
+  def drawDetails(self):
+    return
+    cv2.putText(frame, '%d'%self.datum, (self.x, self.y), cv2.FONT_HERSHEY_PLAIN, 2.0, (0, 255, 255), thickness = 2)
+
 
 class Box:
   def __init__(self,point1,point2,point3,point4):
@@ -113,19 +125,19 @@ class Box:
 
 
   def drawDots(self,img):
-    self.point1.draw(img)
-    self.point2.draw(img)
-    self.point3.draw(img)
-    self.point4.draw(img)
-    self.pointm1.draw(img)
-    self.pointm2.draw(img)
+    self.point1.draw(frame)
+    self.point2.draw(frame)
+    self.point3.draw(frame)
+    self.point4.draw(frame)
+    self.pointm1.draw(frame)
+    self.pointm2.draw(frame)
 
   def drawBox(self,img):
-    self.side1.draw(img)
-    self.side2.draw(img)
-    self.side3.draw(img)
-    self.side4.draw(img)
-    self.side5.draw(img)
+    self.side1.draw(frame)
+    self.side2.draw(frame)
+    self.side3.draw(frame)
+    self.side4.draw(frame)
+    self.side5.draw(frame)
 
   #Determine which direction the arrow points inside the box
   def findDirection(self):
@@ -135,16 +147,34 @@ class Box:
     r1Count = 0
     r2Count = 0
     #Check the count of each "corner" in each half.
+    valid = False
     for corner in corners:
-      (x,y) = i.ravel()
-      if(cv2.pointPolygonTest(rect1,(x,y),False)==1.0):
-        r1Count += 1
-      if(cv2.pointPolygonTest(rect2,(x,y),False)==1.0):
-        r2Count += 1
+      x,y = corner.ravel()
+      if (checkBounds(x,y,self.point1,self.point3,self.pointm1,self.pointm2)):
+        r1Count +=1
+      elif(checkBounds(x,y,self.point2,self.point4,self.pointm1,self.pointm2)):
+        r2Count +=1
+
+      #if(cv2.pointPolygonTest(rect1,(x,y),False)== 1):
+      #  r1Count += 1
+      #if(cv2.pointPolygonTest(rect2,(x,y),False) == 1):
+      #  r2Count += 1
     if(r1Count > r2Count):
       return True
     if(r2Count > r1Count):
       return False
+
+def checkBounds(x,y,point1,point2,point3,point4):
+  if(x < min(point1.x,point2.x,point3.x,point4,x)):
+    return False
+  if(x > max(point1.x,point2.x,point3.x,point4.x)):
+    return False
+  if(x < min(point1.y,point2.y,point3.y,point4,y)):
+    return False
+  if(x > max(point1.y,point2.y,point3.y,point4.y)):
+    return False
+  return True
+
 
 #Get the Bounding box for two circles. The arrow will be inside.
 def findBox(circle1, circle2,img):
@@ -156,23 +186,23 @@ def findBox(circle1, circle2,img):
   m = perpSlope(circle1,circle2)
 
   c1ctr = Point(circle1.x,circle1.y)
-  c1ctr.draw(img)
+  c1ctr.draw(frame)
   perpLine1a = line(c1ctr.x,c1ctr.y, m,radius)
-  perpLine1a.drawEnds(img)
+  perpLine1a.drawEnds(frame)
   
   c2ctr = Point(circle2.x,circle2.y)
-  c2ctr.draw(img)
+  c2ctr.draw(frame)
   perpLine2a = line(c2ctr.x,c2ctr.y,m,radius)
-  perpLine2a.drawEnds(img)
+  perpLine2a.drawEnds(frame)
 
   perpLine1b = line(c1ctr.x,c1ctr.y, m,-radius)
-  perpLine1b.drawEnds(img)
+  perpLine1b.drawEnds(frame)
 
   perpLine2b = line(c2ctr.x,c2ctr.y,m,-radius)
-  perpLine2b.drawEnds(img)
+  perpLine2b.drawEnds(frame)
 
   b = Box(perpLine1a.point2,perpLine1b.point2,perpLine2a.point2,perpLine2b.point2)
-  b.drawBox(img)
+  b.drawBox(frame)
   return b
   #perpLine1a.setPoints(perpLine1a.point2,perpLine1b.point2)
   #perpLine2a.setPoints(perpLine2b.point2,perpLine2b.point2)
@@ -213,12 +243,28 @@ def dotcount(points,dst,box):
 
 #CORNER DETECTION
 def getCornerList():
-  gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+  global corners
+  #gray = cv2.cvtColor(gray,cv2.COLOR_BGR2GRAY)
 
   corners = cv2.goodFeaturesToTrack(gray,50,0.05,0)
   corners = np.int0(corners)
 
   return corners;
+
+#NUMBER VALIDATION
+#Determine if a number is inside a circle. If not, don't even display it.
+#If it exists in a circle, add it to the datum field of that node.
+def validateNumber(digit,x,y):
+  valid = False
+  for c in circleList:
+    if(c.contains(x,y)):
+      c.setDatum(digit)
+      valid = True
+  #print valid
+  return valid
+
+
+
 
 #NUMBER DETECTION
 def findNumbers():
@@ -226,7 +272,7 @@ def findNumbers():
     #blank = True
     #while blank:
     #    rval, frame = vc.read()
-    #    if frame is not None:
+    #    if frame is snot None:
     #        blank=False
 
     classifier_fn = 'digits_svm.dat'
@@ -255,7 +301,7 @@ def findNumbers():
                 continue
             pad = max(h-w, 0)
             x, w = x-pad/2, w+pad
-            cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 0))
+            #cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255))
 
             bin_roi = bin[y:,x:][:h,:w]
             gray_roi = gray[y:,x:][:h,:w]
@@ -286,7 +332,9 @@ def findNumbers():
 
             sample = preprocess_hog([bin_norm])
             digit = model.predict(sample)[0]
-            cv2.putText(frame, '%d'%digit, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (200, 0, 0), thickness = 1)
+            if(validateNumber(digit,x,y)):
+              cv2.rectangle(frame, (x, y), (x+w, y+h), (0, 255, 255))
+              cv2.putText(frame, '%d'%digit, (x, y), cv2.FONT_HERSHEY_PLAIN, 1.0, (0, 0, 255), thickness = 2)
         stop=False
 
 
@@ -309,8 +357,10 @@ def process():
   #      blank=False
 
   #CIRCLE DETECTION
-  print "img",img
-  gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+  global gray
+  #print gray
+  #gray = cv2.cvtColor(gray,cv2.COLOR_BGR2GRAY)
+  global circleList
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
   if circles is None:
     return
@@ -325,18 +375,19 @@ def process():
             break
         cir = Circle(c[0],c[1],c[2])
         cir2 = Circle(d[0],d[1],d[2])
-        b = findBox(cir,cir2,img)
+        circleList.append(cir)
+        b = findBox(cir,cir2,gray)
         b.findDirection()
         #Draw Circle
-        cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),1)
+        cv2.circle(gray, (c[0],c[1]), c[2], (100,255,100),1)
         #Draw enter
-        cv2.circle(img, (c[0],c[1]), 1, (100,100 ,255),1)
+        cv2.circle(gray, (c[0],c[1]), 1, (100,100 ,255),1)
         #break
-        cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+        cv2.line(gray, (c[0],c[1]),(d[0],d[1]), (200,200,50))
         
 
   findNumbers()
-  cv2.imshow("Image Feed",img)
+  cv2.imshow("Image Feed",gray)
         #break
         #r=30
         #theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
@@ -365,18 +416,27 @@ def main():
   vc = cv2.VideoCapture(0)
   global frame
   global img
+  global gray
   rval, frame = vc.read()
-
+  first = True
   while True:
-    if frame is not None:
+    if frame is not None and first:
       #Show Live Image
       cv2.imshow("Image Feed", frame)
       img = frame
-      print "img",img,"frame",frame
+      gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+      #print "",img,"frame",frame
       #Process it instead
       process()
-    if frame is None:
-      print "empty"
+      #first = False
+      for circle in circleList:
+        #print "Circle:", circle.x, circle.y, circle.datum
+        circle.drawDetails()
+        cv2.namedWindow("Image Feed")
+        cv2.imshow("Image Feed", frame)
+        cv2.imshow("Raw", gray)
+    #if frame is None:
+      #print "empty"
 
     rval, frame = vc.read()
     if cv2.waitKey(1) & 0xFF == ord('q'):
