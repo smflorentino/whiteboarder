@@ -6,7 +6,8 @@ class node:
     def __init__(self, data):
         self.datum = data # contains the data
         self.nodes = None # contains the reference to the next node
-    def add_node(self,node)
+
+    def add_node(self,node):
         np.insert(self.nodes,0,node)
 
 class linked_list:

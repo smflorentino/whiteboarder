@@ -4,7 +4,7 @@ class StructureCanvas(tk.Canvas):
     def __init__(self, *args, **kwargs):
         canvas = tk.Canvas.__init__(self, *args, **kwargs)
         canvas = tk.Canvas(self, width=800, height=500)
-        canvas.pack(side="top", fill="both", expand=True)
+
         canvas_id = canvas.create_text(10, 10, anchor="nw")
 
         canvas.itemconfig(canvas_id, text="this is the text")
