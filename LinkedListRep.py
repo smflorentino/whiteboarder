@@ -20,7 +20,7 @@ class linked_list:
         self.cur_node = new_node #  set the current node to the new one.
         
     def get_Datum(self):
-        self.data
+        return self.data
 
     def list_print(self):
         node = self.cur_node # cant point to ll!
@@ -28,7 +28,7 @@ class linked_list:
             print node.data
             node = node.next
 
-   # def get_Datum():
+   
 
 
     # def set_Datum():
