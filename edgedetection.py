@@ -58,7 +58,7 @@ class line:
 
     #A line with two points.
 class regLine:
-  thinkness = 2
+  thinkness = 1
   color = (0,255,0)
   point1 = Point(0,0)
   point2 = Point(0,0)
@@ -214,27 +214,26 @@ def getCornerList(img):
 
   return corners;
 
+def process(vc,img):
+ 
+  #GET A NON BLANK IMAGE
+  blank = True
+  while blank:
+      rval, img = vc.read()
+      if img is not None:
+        print "not empty"
+        blank=False
 
-#CIRCLE DETECTION
-def getCircles():
+  #CIRCLE DETECTION
   gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
-  #print "List", len(circles[0])
-  #first=True
+  if circles is None:
+    return
 
-
-#EDGE DETECTION
-    
-  gray = np.float32(gray)
-  dst = cv2.cornerHarris(gray,4,3,0.04)
-#result is dilated for marking the corners, not important
-  dst = cv2.dilate(dst,None)
-# Threshold for an optimal value, it may vary depending on the image.
-  img[dst>0.01*dst.max()]=[0,0,255]
-
-  circleList = []
-
+  #EDGE DETECTION
   corners = getCornerList(img)
+
+
   for c in circles[0]:
     for d in circles[0]:  
         if(d[1]==c[1]):
@@ -243,9 +242,14 @@ def getCircles():
         cir2 = Circle(d[0],d[1],d[2])
         b = findBox(cir,cir2,img)
         b.findDirection()
-        circleList.append(cir)
-        break
+        #Draw Circle
+        cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),1)
+        #Draw enter
+        cv2.circle(img, (c[0],c[1]), 1, (100,100 ,255),1)
+        #break
         cv2.line(img, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+        cv2.imshow("Image Feed",img)
+        break
         r=30
         theta=math.atan(-(d[0]-c[0])/(d[1]-c[1]))
         test=np.array([0,r]);
@@ -256,9 +260,9 @@ def getCircles():
         box = np.int0(box)
         rect=((c[0],c[1]),(d[0],d[1]),((c[0]+r*math.cos(theta)).astype(int),(c[1]+r*math.sin(theta)).astype(int)),((c[0]-r*math.cos(theta)).astype(int),(c[1]-r*math.sin(theta)).astype(int)),((d[0]+r*math.cos(theta)).astype(int),(d[1]+r*math.sin(theta)).astype(int)),((d[0]-r*math.cos(theta)).astype(int),(d[1]-r*math.sin(theta)).astype(int)))
 
-        dotcount(points,dst,box)          
-
-       # cv2.line(img, rect[0],rect[1], (0,200,250))
+        dotcount(points,dst,box)         
+        break
+        #cv2.line(img, rect[0],rect[1], (0,200,250))
         #cv2.line(img,rect[2], rect[3], (0,100,250),2)
        # cv2.line(img,rect[4], rect[5], (0,100,250),2)
        # if first:
@@ -269,27 +273,36 @@ def getCircles():
           #bitmask(img,theta,rect)
           #first=False
 
-
-
-
-#PAINTING
-  #if circles is not None:
-  #          for c in circles[0]:
-                    #cv2.circle(img, (c[0],c[1]), c[2], (100,255,100),-1)
-
-  cv2.imshow('dst',img)
-
-  if cv2.waitKey(0) & 0xff == 27:
-    cv2.destroyAllWindows()
-
-
 #IMAGE IMPORT
 #filename = "C:\\Users\Matthew\My Documents\GitHub\whiteboarder\circlesarrowsnumbers.jpg"
-filename = "circlesarrowsnumbers.jpg"
-img = cv2.imread(filename)
-y,x,d=img.shape
-img=cv2.resize(img,(x/4,y/4))
-print x/4, y/4
-getCircles()
+#filename = "circlesarrowsnumbers.jpg"
+#img = cv2.imread(filename)
+#y,x,d=img.shape
+#img=cv2.resize(img,(x/4,y/4))
+#print x/4, y/4
+#getCircles()
+
+def main():
+  cv2.namedWindow("Image Feed")
+  vc = cv2.VideoCapture(0)
+
+  rval, frame = vc.read()
+
+  while True:
+    if frame is not None:
+      #Show Live Image
+      cv2.imshow("preview", frame)
+      #Process it instead
+      process(vc,frame)
+    if frame is None:
+      print "empty"
+
+    rval, frame = vc.read()
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+
+#Call Main
+main()
 
 
