@@ -1,5 +1,5 @@
 from Tkinter import Tk, Text, RIGHT,BOTH,RAISED, W, N, E, S, Menu, Canvas
-
+import edgedetection
 from ttk import Frame, Button, Style, Label
 from StructureCanvas import StructureCanvas
 import LinkedListRep as LL
@@ -47,6 +47,8 @@ class Interface(Frame):
 #        self.canvas.create_line(x2,y2,m*5,-inv*5)
 
 
+
+
 def printList(list):
     head = list
     coords = (head.x,head.y)
@@ -61,20 +63,18 @@ def printList(list):
 
 
 
-ui = Interface()
-a = (100,105)
-b = (200,205)
-c = (300,305)
-d = (400,405)
-
-ui.drawNode(a,125,"12")
-ui.drawNode(b,125,"13")
-ui.drawNode(c,125,"14")
-ui.drawNode(d,125,"15")
+printList(edgedetection.mainToGUI())
 
 
-ui.drawArrow(a,b)
-ui.drawArrow(b,c)
-ui.drawArrow(c,d)
-ui.pack()
-ui.mainloop()
+
+
+
+
+
+
+
+
+
+
+
+
