@@ -4,6 +4,7 @@ from ttk import Frame, Button, Style, Label
 from StructureCanvas import StructureCanvas
 import LinkedListRep as LL
 
+print "hello"
 
 class Interface(Frame):
 
@@ -47,10 +48,12 @@ class Interface(Frame):
 #        self.canvas.create_line(x2,y2,m*5,-inv*5)
 
 
+ui = Interface()
 
-
-def printList(list):
-    head = list
+def printList(nodes):
+    print "inside print List"
+    print nodes
+    head = nodes
     coords = (head.x,head.y)
     ui.drawNode(coords,head.r,'%d'%head.datum)
     if head.next is not None:
@@ -59,8 +62,10 @@ def printList(list):
         ui.drawArrow(coords,nextCoords)
         head = head.next
         printList(head)
+            
+    ui.pack()
+    ui.mainloop()
     
-
 
 
 printList(edgedetection.mainToGUI())
