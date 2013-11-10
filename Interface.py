@@ -16,7 +16,6 @@ class Interface(Frame):
         self.canvas.pack()
 
 
-
     def createLL():
         LL.linked_list()
         print "Linked List chosen"
@@ -48,15 +47,34 @@ class Interface(Frame):
 #        self.canvas.create_line(x2,y2,m*5,-inv*5)
 
 
-        
+def printList(list):
+    head = list
+    coords = (head.x,head.y)
+    ui.drawNode(coords,head.r,'%d'%head.datum)
+    if head.next is not None:
+        nextNode = head.next
+        nextCoords = (nextNode.x,nextNode.y)
+        ui.drawArrow(coords,nextCoords)
+        head = head.next
+        printList(head)
+    
+
 
 
 ui = Interface()
+a = (100,105)
+b = (200,205)
+c = (300,305)
+d = (400,405)
 
-c = (101,100)
-d = (201,200)
-ui.drawNode(c,100,"2")
-ui.drawNode(d,150,"7")
+ui.drawNode(a,125,"12")
+ui.drawNode(b,125,"13")
+ui.drawNode(c,125,"14")
+ui.drawNode(d,125,"15")
+
+
+ui.drawArrow(a,b)
+ui.drawArrow(b,c)
 ui.drawArrow(c,d)
 ui.pack()
 ui.mainloop()
