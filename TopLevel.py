@@ -37,7 +37,7 @@ class Example(Frame):
         
         self.columnconfigure(1, weight=1)
         self.columnconfigure(3, pad=7)
-        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
         self.rowconfigure(5, pad=7)
         
         frame = Frame(self, relief=RAISED, borderwidth=1)
@@ -50,11 +50,17 @@ class Example(Frame):
         area.grid(row=1, column=0, columnspan=2, rowspan=4, 
             padx=15, sticky=E+W+S+N)
 
-        abtn = Button(self, text="Activate")
-        abtn.grid(row=1, column=3)
+        lbtn = Button(self, text="Linked List")
+        lbtn.grid(row=1, column=3, pady=4)
 
-        cbtn = Button(self, text="Close")
-        cbtn.grid(row=2, column=3, pady=4)
+        abtn = Button(self, text="Array")
+        abtn.grid(row=2, column=3, pady=4)
+
+        gbtn = Button(self, text="Graph")
+        gbtn.grid(row=3, column=3, pady=4)
+        
+        obtn = Button(self, text="Process")
+        obtn.grid(row=5, column=3, padx=0) 
         
         
         #closeButton.pack(side=RIGHT, padx=5, pady=5)
