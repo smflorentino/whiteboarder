@@ -3,6 +3,7 @@ import numpy as np
 import math
 import os
 import sys
+import time
 from common import mosaic
 
 from digits import *
@@ -93,6 +94,9 @@ class Circle:
     self.x=x
     self.y=y
     self.r=r
+    self.datum = -1
+    self.next = None
+    self.head = True
 
   def contains(self,x,y):
     return (math.pow(x-self.x,2) + math.pow(y-self.y,2) ) < math.pow(self.r,2)
@@ -102,6 +106,7 @@ class Circle:
 
   def setNext(self, next):
     self.next = next
+    self.next.head = False
 
   def drawDetails(self):
     return
@@ -141,6 +146,8 @@ class Box:
 
   #Determine which direction the arrow points inside the box
   def findDirection(self,circle1,circle2):
+
+
     #Divide the bound into two halves.
     rect1 = cv2.minAreaRect(getPointList(self.point1,self.point3,self.pointm1,self.pointm2))
     rect2 = cv2.minAreaRect(getPointList(self.point2,self.point4,self.pointm1,self.pointm2))
@@ -148,36 +155,40 @@ class Box:
     r2Count = 0
     #Check the count of each "corner" in each half.
     valid = False
+    corners = getCornerList(self.point1.x,self.point1.y,self.point4.x,self.point4.y)
+    #print "corners", corners
     for corner in corners:
       x,y = corner.ravel()
+      #if(circle1.contains(x,y) || circle2.contains(x,y))
       if (checkBounds(x,y,self.point1,self.point3,self.pointm1,self.pointm2)):
         r1Count +=1
       elif(checkBounds(x,y,self.point2,self.point4,self.pointm1,self.pointm2)):
         r2Count +=1
-    global circles
-    for circle in circles:
-      x=circle[0];
-      y=circle[1];
-         #x,y,z = circle.ravel()
-         #if(cv2.pointPolygonTest(rect1,(circle[0],circle[1]),False)==1.0|cv2.pointPolygonTest(rect1,(circle[0],circle[1]),False)==1.0):
-      if (checkBounds(x,y,self.point1,self.point3,self.point2,self.point4)):
-            r1Count=0
-            r2Count=0
-            
+
+    print "r1/rr2 count:", r1Count,r2Count
+      #if(cv2.pointPolygonTest(rect1,(x,y),False)== 1):
+      #  r1Count += 1
+      #if(cv2.pointPolygonTest(rect2,(x,y),False) == 1):
+      #  r2Count += 1
     if(r1Count > r2Count):
-      cv2.circle(frame, (circle1[0],circle1[1]), circle1[2], (200,255,100),3)
-      output.index(circle1)[2].append(circle2)
+      circle2.setNext(circle1)
     if(r2Count > r1Count):
-      output.index(circle2)[2].append(circle1)
+      circle1.setNext(circle2)
 
 def checkBounds(x,y,point1,point2,point3,point4):
+  #print "checking bounds"
+  #print x,y,point1.x,point1.y,point2.x,point3.x,point3.y,point4.x,point4.y
   if(x < min(point1.x,point2.x,point3.x,point4,x)):
+    #print "first"
     return False
   if(x > max(point1.x,point2.x,point3.x,point4.x)):
+    #print "second"
     return False
   if(x < min(point1.y,point2.y,point3.y,point4,y)):
+    #print "thrid"
     return False
   if(x > max(point1.y,point2.y,point3.y,point4.y)):
+    #print "fourth"
     return False
   return True
 
@@ -190,11 +201,11 @@ def findBox(circle1, circle2,img):
   radius2 = circle2.r
   radius =  min(radius1,radius2) + 10
   m = perpSlope(circle1,circle2)
+
   if(math.isinf(m)):
     return None
 
   c1ctr = Point(circle1.x,circle1.y)
-  print c1ctr.x,c1ctr.y,m,radius
   c1ctr.draw(frame)
   perpLine1a = line(c1ctr.x,c1ctr.y, m,radius)
   perpLine1a.drawEnds(frame)
@@ -227,37 +238,21 @@ def getPointList(point1,point2,point3,point4):
   return np.array([[point1.x,point1.y],[point2.x,point2.y],[point3.x,point3.y],[point4.x,point4.y]])
 
 
-#ARROW DETECTION
-def dotcount(points,dst,box):
-  return
-  #print points
-  xmin=min(min(points[0,0],points[1,0]),min(points[2,0],points[3,0]))
-  xmax=max(max(points[0,0],points[1,0]),max(points[2,0],points[3,0]))
-  ymin=min(min(points[0,1],points[1,1]),min(points[2,1],points[3,1]))
-  ymax=max(max(points[0,1],points[1,1]),max(points[2,1],points[3,1]))
-  count=0
-  h,w,d=img.shape
-  dm=dst.max()
-  print xmin,xmax,ymin,ymax
-  for x in range(xmin,xmax):
-    #print "x",x, "xmax", xmax,"ymax",ymax
-    #print box
-    for y in range(ymin,ymax):
-     # print y,x,dst[y,x],cv2.pointPolygonTest(points,(y,x),False)
-      if (dst[y,x]>.01*dm)& (cv2.pointPolygonTest(box,(y,x),False)==1.0):
-            count+=1
-            
-  print "count",count
-
-
 #CORNER DETECTION
-def getCornerList():
-  global corners
+def getCornerList(x1,y1,x2,y2):
   #gray = cv2.cvtColor(gray,cv2.COLOR_BGR2GRAY)
 
-  corners = cv2.goodFeaturesToTrack(gray,50,0.05,0)
+  bounds = img[x1:y1,x2:y2]
+  corners = cv2.goodFeaturesToTrack(gray,300,0.05,0)
+  #cv2.goodFeaturesToTrack(gray,100,0.05,0,corners,bounds)
+  #print "corners,",corners
   corners = np.int0(corners)
 
+  for i in corners:
+      x,y = i.ravel()
+      cv2.circle(frame,(x,y),6,170,-1)
+
+  #print "before returning corners", corners
   return corners;
 
 #NUMBER VALIDATION
@@ -271,6 +266,7 @@ def validateNumber(digit,x,y):
       valid = True
   #print valid
   return valid
+
 
 
 
@@ -370,41 +366,68 @@ def process():
   #print gray
   #gray = cv2.cvtColor(gray,cv2.COLOR_BGR2GRAY)
   global circleList
-  global circles
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
   if circles is None:
     return
 
+  for c in circles[0]:
+    cir = Circle(c[0],c[1],c[2])
+    circleList.append(cir)
+
   #CORNER DETECTION
-  corners = getCornerList()
-  
-  circles=circles[0]
-  print "circles", circles
-  global output
-  output=[circles[i] for i in range(0,circles.shape[0])] 
+  #corners = getCornerList()
 
-  print "output",output          
-  #CORNER DETECTION
-  corners = getCornerList()
+  for i in range(0, len(circleList)):
+    for j in range(i, len(circleList)):
+      if(i != j):
+        #print "i,j",i,j
+        c = circleList[i]
+        d = circleList[j]
+        b = findBox(c,d,gray)
+        if(b is not None):
+          b.findDirection(c,d)
+        #print "drawing circle"
+        #Draw Circle
+        cv2.circle(frame, (c.x,c.y), c.r, (100,255,100),1)
+        #Draw enter
+        cv2.circle(frame, (c.x,c.y), 1, (100,100 ,255),1)
+        #Draw Circle
+        cv2.circle(frame, (d.x,d.y), d.r, (100,255,100),1)
+        #Draw enter
+        cv2.circle(frame, (d.x,d.y), 1, (100,100 ,255),1)
+        #break
+        cv2.line(frame, (c.x,c.y),(d.x,d.y), (200,200,50))
 
 
-  for i in range(0,circles.shape[0]):
-      for j in range(i,circles.shape[0]):
-        if(i!=j):
-          cir = Circle(circles[i,0],circles[i,1],circles[i,2])
-          cir2 = Circle(circles[j,0],circles[j,1],circles[j,2])
-          b = findBox(cir,cir2,img)
+  '''
+  print "Num of Circles", len(circles[0])
+  for i in range(0, len(circles[0])):
+    for j in range(i, len(circles[0])):
+        c = circles[0,i]
+        d = circles[0,j]
+        if(i != j):
+          print "i,j",i,j
+          print "scircle added"
+          cir = Circle(c[0],c[1],c[2])
+          cir2 = Circle(d[0],d[1],d[2])
+          circleList.append(cir)
+         # circleList.append(cir2)
+          b = findBox(cir,cir2,gray)
           if(b is not None):
             b.findDirection(cir,cir2)
+          print "drawing circle"
           #Draw Circle
-          cv2.circle(img, (circles[i,0],circles[i,1]), circles[i,2], (100,255,100),1)
-          #Draw center
-          cv2.circle(img, (circles[i,0],circles[i,1]), 1, (100,100 ,255),1)
+          cv2.circle(frame, (c[0],c[1]), c[2], (100,255,100),1)
+          #Draw enter
+          cv2.circle(frame, (c[0],c[1]), 1, (100,100 ,255),1)
+          #Draw Circle
+          cv2.circle(frame, (d[0],d[1]), d[2], (100,255,100),1)
+          #Draw enter
+          cv2.circle(frame, (d[0],d[1]), 1, (100,100 ,255),1)
           #break
-          cv2.line(img, (circles[i,0],circles[i,1]),(circles[j,0],circles[j,1]), (200,200,50))
-        
-
-
+          cv2.line(frame, (c[0],c[1]),(d[0],d[1]), (200,200,50))
+  '''  
+  #print "CircleList", circleList
   findNumbers()
   cv2.imshow("Image Feed",gray)
         #break
@@ -436,6 +459,7 @@ def main():
   global frame
   global img
   global gray
+  global circleList
   rval, frame = vc.read()
   first = True
   while True:
@@ -449,11 +473,31 @@ def main():
       process()
       #first = False
       for circle in circleList:
-        #print "Circle:", circle.x, circle.y, circle.datum
+        print "Circle:", circle.x, circle.y
+        if(circle.datum is not None):
+          print "Datum for above circle:", circle.datum
+        if(circle.next is not None):
+          print "next for above circle:", circle.next.datum
+        if(circle.head):
+          print "head?", circle.head
         circle.drawDetails()
         cv2.namedWindow("Image Feed")
         cv2.imshow("Image Feed", frame)
         cv2.imshow("Raw", gray)
+        time.sleep(1)
+      head = None
+      for circle in circleList:
+        if(circle.head):
+          head=circle
+          break
+      #now we have have the head
+
+      while(head is not None and head.next is not None):
+        linkedList.add_node(head)
+        print head.datum,"->"
+        head = head.next
+      circleList = []
+
     #if frame is None:
       #print "empty"
 
@@ -461,7 +505,60 @@ def main():
     if cv2.waitKey(1) & 0xFF == ord('q'):
       break
 
+def mainToGUI():
+  cv2.namedWindow("Image Feed")
+  vc = cv2.VideoCapture(0)
+  global frame
+  global img
+  global gray
+  global circleList
+  rval, frame = vc.read()
+  first = True
+  while True:
+    if frame is not None and first:
+      #Show Live Image
+      cv2.imshow("Image Feed", frame)
+      img = frame
+      gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+      #print "",img,"frame",frame
+      #Process it instead
+      process()
+      #first = False
+      for circle in circleList:
+        print "Circle:", circle.x, circle.y
+        if(circle.datum is not None):
+          print "Datum for above circle:", circle.datum
+        if(circle.next is not None):
+          print "next for above circle:", circle.next.datum
+        if(circle.head):
+          print "head?", circle.head
+        circle.drawDetails()
+        cv2.namedWindow("Image Feed")
+        cv2.imshow("Image Feed", frame)
+        cv2.imshow("Raw", gray)
+        time.sleep(1)
+      head = None
+      for circle in circleList:
+        if(circle.head):
+          head=circle
+          break
+      #now we have have the head
+      return head
+      while(head is not None and head.next is not None):
+        linkedList.add_node(head)
+        print head.datum,"->"
+        head = head.next
+      circleList = []
+
+    #if frame is None:
+      #print "empty"
+
+    rval, frame = vc.read()
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+
+
 #Call Main
 main()
-
-
+#Pass to mainToGUI
+mainToGUI()
