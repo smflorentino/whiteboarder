@@ -1,6 +1,5 @@
 # back end for maintaining opjects that will represent the nodes
 # and arrows on the "whiteboard"
-import scipy
 import numpy as np
 
 class node:
