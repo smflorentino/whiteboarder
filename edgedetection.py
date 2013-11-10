@@ -3,6 +3,9 @@ import numpy as np
 import math
 from matplotlib import pyplot as plt
 
+#Global Variables
+corners = []
+
 
 #Utility Functions
 def slope(circle1, circle2):
@@ -55,7 +58,7 @@ class line:
 
     #A line with two points.
 class regLine:
-  thinkness = 2
+  thinkness = 1
   color = (0,255,0)
   point1 = Point(0,0)
   point2 = Point(0,0)
@@ -101,6 +104,8 @@ class Box:
     self.side4 = regLine(point3,point4)
     self.side5 = regLine(self.pointm1,self.pointm2)
 
+
+
   def drawDots(self,img):
     self.point1.draw(img)
     self.point2.draw(img)
@@ -116,6 +121,26 @@ class Box:
     self.side4.draw(img)
     self.side5.draw(img)
 
+  #Determine which direction the arrow points inside the box
+  def findDirection(self):
+    #Divide the bound into two halves.
+    rect1 = cv2.minAreaRect(getPointList(self.point1,self.point3,self.pointm1,self.pointm2))
+    rect2 = cv2.minAreaRect(getPointList(self.point2,self.point4,self.pointm1,self.pointm2))
+    r1Count = 0
+    r2Count = 0
+    #Check the count of each "corner" in each half.
+    for corner in corners:
+      (x,y) = i.ravel()
+      if(cv2.pointPolygonTest(rect1,(x,y),False)==1.0):
+        r1Count += 1
+      if(cv2.pointPolygonTest(rect2,(x,y),False)==1.0):
+        r2Count += 1
+    if(r1Count > r2Count):
+      return True
+    if(r2Count > r1Count):
+      return False
+
+#Get the Bounding box for two circles. The arrow will be inside.
 def findBox(circle1, circle2,img):
   #Get minimum radius of both circles
 
@@ -150,9 +175,11 @@ def findBox(circle1, circle2,img):
   #perpLine1b.drawEnds(img)
 
 
-
 def getPointList((x1,y1),(x2,y2),(x3,y3),(x4,y4)):
   return np.array([[x1,y1],[x2,y2],[x3,y3],[x4,y4]])
+
+def getPointList(point1,point2,point3,point4):
+  return np.array([[point1.x,point1.y],[point2.x,point2.y],[point3.x,point3.y],[point4.x,point4.y]])
 
 
 #ARROW DETECTION
@@ -187,11 +214,20 @@ def getCornerList(img):
 
   return corners;
 
+def process(vc,img):
+ 
+  #GET A NON BLANK IMAGE
+  blank = True
+  while blank:
+      rval, img = vc.read()
+      if img is not None:
+        print "not empty"
+        blank=False
 
-#CIRCLE DETECTION
-def getCircles():
+  #CIRCLE DETECTION
   gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
   circles =  cv2.HoughCircles(gray, cv2.cv.CV_HOUGH_GRADIENT, 1, 40, np.array([]), 100, 40, 5, 300)
+<<<<<<< HEAD
   #print "List", len(circles[0])
   #first=True
 
@@ -254,13 +290,28 @@ def getCircles():
     cv2.destroyAllWindows()
 
 
-#IMAGE IMPORT
-#filename = "C:\\Users\Matthew\My Documents\GitHub\whiteboarder\circlesarrowsnumbers.jpg"
-filename = "circlesarrowsnumbers.jpg"
-img = cv2.imread(filename)
-y,x,d=img.shape
-img=cv2.resize(img,(x/4,y/4))
-print x/4, y/4
-getCircles()
+
+def main():
+  cv2.namedWindow("Image Feed")
+  vc = cv2.VideoCapture(0)
+
+  rval, frame = vc.read()
+
+  while True:
+    if frame is not None:
+      #Show Live Image
+      cv2.imshow("preview", frame)
+      #Process it instead
+      process(vc,frame)
+    if frame is None:
+      print "empty"
+
+    rval, frame = vc.read()
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      break
+
+#Call Main
+main()
 
 
